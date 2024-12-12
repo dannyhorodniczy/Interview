@@ -5,28 +5,47 @@ namespace WebApi.Controllers;
 [Route("[controller]")]
 public class WeatherForecastController : ControllerBase
 {
-    private static readonly string[] Summaries = new[]
-    {
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
+    private static readonly Dictionary<Guid, string> _shortToLong = new Dictionary<Guid, string>();
+    private static readonly Dictionary<string, Guid> _longToShort = new Dictionary<string, Guid>();
 
-    private readonly ILogger<WeatherForecastController> _logger;
-
-    public WeatherForecastController(ILogger<WeatherForecastController> logger)
+    public WeatherForecastController(FileManager fileManager)
     {
-        _logger = logger;
     }
 
     // https://localhost:7267/WeatherForecast
     [HttpGet(Name = "GetWeatherForecast")]
-    public IEnumerable<WeatherForecast> Get()
+    public IActionResult Get()
     {
-        return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+        var idString = this.Request.QueryString.Value.Replace('?', ' ');
+        var id = Guid.Parse(idString);
+
+        if (_shortToLong.TryGetValue(id, out var longUrl))
         {
-            Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            TemperatureC = Random.Shared.Next(-20, 55),
-            Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-        })
-        .ToArray();
+            return Redirect(longUrl);
+        }
+
+        return NotFound();
+    }
+
+    // https://localhost:7267/WeatherForecast
+    [HttpPost(Name = "PostWeatherForecast")]
+    public string Post(Request request)
+    {
+        if (_longToShort.TryGetValue(request.longUrl, out Guid id))
+        {
+            return $"https://localhost:7267/WeatherForecast?{id}";
+        }
+
+        return EncodeInternal(request.longUrl);
+    }
+
+    private string EncodeInternal(string longUrl)
+    {
+        var id = Guid.NewGuid();
+        _shortToLong[id] = longUrl;
+        _longToShort[longUrl] = id;
+        return $"https://localhost:7267/WeatherForecast?{id}";
     }
 }
+
+public record Request(string longUrl);
