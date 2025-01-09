@@ -8,7 +8,7 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
-        builder.Services.AddTransient<FileManager>();
+        builder.Services.AddSqlDataSource("Server=localhost\\SQLEXPRESS;Database=TestDatabase;Trusted_Connection=True;TrustServerCertificate=True");
 
         builder.Services.AddControllers();
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
