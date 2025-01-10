@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using System;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace WebApi.Controllers;
 
@@ -7,11 +10,11 @@ namespace WebApi.Controllers;
 [Route("[controller]")]
 public class UrlManagementController : ControllerBase
 {
-    
+
     [HttpGet]
     public string GetAndDoSomething()
     {
-        return "it's a get!";
+        return $"Is this running on Linux? {RuntimeInformation.IsOSPlatform(OSPlatform.Linux)}";
     }
 
     [HttpGet]
