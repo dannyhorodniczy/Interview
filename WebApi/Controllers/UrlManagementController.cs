@@ -7,6 +7,13 @@ namespace WebApi.Controllers;
 [Route("[controller]")]
 public class UrlManagementController : ControllerBase
 {
+    
+    [HttpGet]
+    public string GetAndDoSomething()
+    {
+        return "it's a get!";
+    }
+
     [HttpGet]
     [Route("{id}")]
     public async Task<IActionResult> RedirectAsync(SqlDataSource dataSource, Guid id)
