@@ -1,8 +1,6 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0.101-alpine3.20-amd64 AS build
 WORKDIR /build
 
-RUN apk add --no-cache icu-libs
-
 # Copy everything
 COPY . ./
 # Restore as distinct layers
@@ -12,7 +10,11 @@ RUN dotnet publish -c Release -o out -r linux-musl-x64 --no-restore --no-self-co
 
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:9.0.0-alpine3.20-amd64
-WORKDIR /App
+
+RUN apk add --no-cache icu-libs
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
+
+WORKDIR /build
 COPY --from=build /build/out .
 ENTRYPOINT ["dotnet", "WebApi.dll"]
 

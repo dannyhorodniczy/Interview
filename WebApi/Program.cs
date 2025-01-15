@@ -12,7 +12,9 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
-        builder.Services.AddSqlDataSource("Server=localhost\\SQLEXPRESS;Database=TestDatabase;Trusted_Connection=True;TrustServerCertificate=True");
+        //builder.Services.AddSqlDataSource("Server=localhost\\SQLEXPRESS;Database=TestDatabase;Trusted_Connection=True;TrustServerCertificate=True");
+        //builder.Services.AddSqlDataSource("Server=192.168.2.44;Database=TestDatabase;User ID=sa;Password=This_Is_@_?pw23;Trusted_Connection=True;TrustServerCertificate=True");
+        builder.Services.AddSqlDataSource("Server=192.168.2.44;Database=TestDatabase;User ID=sa;Password=This_Is_@_?pw23;TrustServerCertificate=True");
 
         builder.Services.AddControllers();
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

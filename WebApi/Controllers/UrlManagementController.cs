@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using System;
@@ -47,7 +48,7 @@ WHERE longUrl = '{request.url}'
         var test = await command.ExecuteScalarAsync();
         if (test is Guid guid)
         {
-            return BuildUrl(guid);
+            return BuildUrl(Request, guid);
         }
 
         return await EncodeAndSaveUrlAsync(dataSource, request.url);
@@ -63,12 +64,14 @@ VALUES ('{id}', '{longUrl}');
 """);
         await command.ExecuteScalarAsync();
 
-        return BuildUrl(id);
+        var host = Request.Host;
+
+        return BuildUrl(Request, id);
     }
 
-    private static string BuildUrl(Guid id)
+    private static string BuildUrl(HttpRequest request, Guid id)
     {
-        return $"https://localhost:7267/UrlManagement/{id}";
+        return $"{request.Scheme}://{request.Host}/UrlManagement/{id}";
     }
 }
 
