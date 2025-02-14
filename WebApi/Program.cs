@@ -14,7 +14,10 @@ public class Program
         // Add services to the container.
         //builder.Services.AddSqlDataSource("Server=localhost\\SQLEXPRESS;Database=TestDatabase;Trusted_Connection=True;TrustServerCertificate=True");
         //builder.Services.AddSqlDataSource("Server=192.168.2.44;Database=TestDatabase;User ID=sa;Password=This_Is_@_?pw23;Trusted_Connection=True;TrustServerCertificate=True");
-        builder.Services.AddSqlDataSource("Server=192.168.2.44;Database=TestDatabase;User ID=sa;Password=This_Is_@_?pw23;TrustServerCertificate=True");
+        builder.Services.AddSqlDataSource("Server=192.168.2.44;Database=TestDatabase;User ID=sa;Password=This_Is_@_?pw23;TrustServerCertificate=True",
+            // remove sql logging, can be configured via appsettings
+            setupAction => setupAction.UseLoggerFactory(null)
+            );
 
         builder.Services.AddControllers();
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

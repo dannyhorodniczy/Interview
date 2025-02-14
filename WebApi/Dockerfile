@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:9.0.101-alpine3.20-amd64 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0.200-alpine3.20-amd64 AS build
 WORKDIR /build
 
 # Copy everything
@@ -9,7 +9,7 @@ RUN dotnet restore -r linux-musl-x64
 RUN dotnet publish -c Release -o out -r linux-musl-x64 --no-restore --no-self-contained
 
 # Build runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:9.0.0-alpine3.20-amd64
+FROM mcr.microsoft.com/dotnet/aspnet:9.0.2-alpine3.20-amd64
 
 RUN apk add --no-cache icu-libs
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
@@ -28,13 +28,13 @@ ENTRYPOINT ["dotnet", "WebApi.dll"]
 #C:\Dev\Interview\WebApi> docker container run -d --name mynewapi -p 8080:8080 webapi-image
 #
 # Other stuff:
-# - still not connecting to the database :/
-# - still need to run on Linux containers!
-# - still need to... I forget :/
+# - still need to... do logging and telemetry
+# - tests!
 # - ideally would run in https
 
 
 ## WINDOWS DOCKERFILE
+## they recommend you use the SHA256 hash to ensure you get the same image (variations in images can cause issues)
 #FROM mcr.microsoft.com/dotnet/sdk:9.0@sha256:3fcf6f1e809c0553f9feb222369f58749af314af6f063f389cbd2f913b4ad556 AS build
 #WORKDIR /App
 #
