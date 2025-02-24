@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
+using Npgsql;
 using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -11,7 +11,6 @@ namespace WebApi.Controllers;
 [Route("[controller]")]
 public class UrlManagementController : ControllerBase
 {
-
     [HttpGet]
     public string GetAndDoSomething()
     {
@@ -20,31 +19,37 @@ public class UrlManagementController : ControllerBase
 
     [HttpGet]
     [Route("{id}")]
-    public async Task<IActionResult> RedirectAsync(SqlDataSource dataSource, Guid id)
+    public async Task<IActionResult> RedirectAsync(NpgsqlDataSource dataSource, Guid id)
     {
-        await using var command = dataSource.CreateCommand($"""
-SELECT TOP 1 id, longUrl
-FROM [TestDatabase].[dbo].[Urls]
-WHERE id = '{id}'
-""");
-        var reader = await command.ExecuteReaderAsync();
+        // TODO: ensure no duplicates at the database level
+        await using var command = dataSource.CreateCommand(
+            $"""
+            SELECT * FROM url.urls
+            WHERE id = '{id}'
+            LIMIT 1
+            """);
+        await using var reader = await command.ExecuteReaderAsync();
 
-        if (reader.Read())
+        if (await reader.ReadAsync())
         {
-            return Redirect(reader.GetString(1));
+            int ordinal = reader.GetOrdinal("longUrl");
+            var longUrl = reader.GetString(ordinal);
+            return Redirect(longUrl);
         }
 
         return NotFound();
     }
 
     [HttpPost]
-    public async Task<string> CreateShortUrlAsync(SqlDataSource dataSource, [FromBody] EncodeUrlRequest request)
+    public async Task<string> CreateShortUrlAsync(NpgsqlDataSource dataSource, [FromBody] EncodeUrlRequest request)
     {
+        // TODO: ensure no sql injection
         await using var command = dataSource.CreateCommand($"""
-SELECT TOP 1 id
-FROM [TestDatabase].[dbo].[Urls]
-WHERE longUrl = '{request.url}'
-""");
+    SELECT id
+    FROM url.urls
+    WHERE longUrl = '{request.url}'
+    LIMIT 1
+    """);
         var test = await command.ExecuteScalarAsync();
         if (test is Guid guid)
         {
@@ -54,17 +59,15 @@ WHERE longUrl = '{request.url}'
         return await EncodeAndSaveUrlAsync(dataSource, request.url);
     }
 
-    private async Task<string> EncodeAndSaveUrlAsync(SqlDataSource dataSource, string longUrl)
+    private async Task<string> EncodeAndSaveUrlAsync(NpgsqlDataSource dataSource, string longUrl)
     {
         var id = Guid.NewGuid();
-        // insert into db
-        await using var command = dataSource.CreateCommand($"""
-INSERT INTO [TestDatabase].[dbo].[Urls]
-VALUES ('{id}', '{longUrl}'); 
-""");
-        await command.ExecuteScalarAsync();
 
-        var host = Request.Host;
+        await using var command = dataSource.CreateCommand($"""
+    INSERT INTO url.urls
+    VALUES ('{id}', '{longUrl}'); 
+    """);
+        await command.ExecuteScalarAsync();
 
         return BuildUrl(Request, id);
     }
